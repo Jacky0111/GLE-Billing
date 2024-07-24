@@ -138,7 +138,7 @@ class Detect:
         print(f'Saved path: {saved_path}')
         print(f'Image name: {image_name}')
 
-        parser.add_argument('--weights', nargs='+', type=str, default=f'C:/Users/ChiaChungLim/PycharmProjects/Consignment-Itemized-Data/model/{best_weight}', help='model.pt path(s)')
+        parser.add_argument('--weights', nargs='+', type=str, default=f'C:/Users/CP1/Desktop/GLE-Billing/{best_weight}', help='model.pt path(s)')
         parser.add_argument('--source', type=str, default=f'{saved_path}/{image_name}.png', help='source')
         parser.add_argument('--img-size', type=int, default=416, help='inference size (pixels)')
         parser.add_argument('--conf-thres', type=float, default=conf, help='object confidence threshold')
