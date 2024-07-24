@@ -24,7 +24,7 @@ class App:
     def __init__(self):
         self.header()
         self.uploadFile()
-        # self.processor()
+        self.processor()
 
     '''
     Set the title and page configuration for wider layout
@@ -60,7 +60,7 @@ class App:
                 self.cid.tableDetection()
 
                 # Detect Row(s)
-                self.cid.rowDetection(self.files_name)
+                # self.cid.rowDetection(self.files_name)
 
     @staticmethod
     def deleteLocalFiles(file):
