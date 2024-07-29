@@ -13,7 +13,7 @@ matplotlib~=3.9.1
 streamlit~=1.30.0
 pdf2image~=1.17.0
 pytesseract~=0.3.10
-ultralytics~=8.0.165
+ultralytics==8.0.165
 scikit-image~=0.24.0
 beautifulsoup4~=4.12.3
 opencv-python~=4.10.0.84
