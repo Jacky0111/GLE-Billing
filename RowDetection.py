@@ -20,7 +20,7 @@ class RowDetection:
     Perform row detection and run OCR.
     @param claim_no: The claim number being processed.
     '''
-    def rowDetection(self, claim_no):
+    def runner(self, claim_no):
         table_boxes_path = f'{self.output_folder_path}/labels/table_boxes.txt'
         selected_pages = RowDetection.readSelectedPages(table_boxes_path)
         new_img_list = RowDetection.readSelectedPages(selected_pages)
