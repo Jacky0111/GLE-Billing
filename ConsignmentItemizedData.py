@@ -13,8 +13,8 @@ from pdf2image import convert_from_path
 from skimage.color import rgb2gray
 from skimage.transform import rotate
 
-from Detect import Detect
-# from OpticalCharacterRecognition import OCR
+from RowDetection import RowDetection
+from TableDetection import TableDetection
 
 poppler_path = r'C:\Program Files\poppler-23.05.0\Library\bin'
 os.environ["PATH"] += os.pathsep + poppler_path
@@ -116,17 +116,12 @@ class CID:
         return rotated
 
     def tableDetection(self):
-        # Navigate to the specified folder path
-        os.chdir(self.output_folder_path)
+        table_detector = TableDetection(self.output_folder_path)
+        table_detector.runner()
 
-        # Use glob to find all PNG files in the current directory
-        self.images_list = [os.path.splitext(filename)[0] for filename in glob.glob('*.png')]
-
-        # Move up two directories
-        os.chdir(os.path.dirname(os.path.dirname(os.getcwd())))
-
-        for img in self.images_list:
-            Detect.parseOpt(self.output_folder_path, img, 'table.pt', 0.7)
+    def rowDetection(self, claim_no):
+        row_detector = RowDetection(self.output_folder_path, self.images_list)
+        row_detector.runner(claim_no)
 
 
 if __name__ == '__main__':
