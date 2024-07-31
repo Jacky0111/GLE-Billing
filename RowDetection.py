@@ -3,7 +3,7 @@ import cv2
 import pytesseract
 
 from Detect import Detect
-# from OpticalCharacterRecognition import OCR
+from OpticalCharacterRecognition import OCR
 
 
 class RowDetection:
