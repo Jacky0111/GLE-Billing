@@ -118,6 +118,7 @@ class CID:
     def tableDetection(self):
         table_detector = TableDetection(self.output_folder_path)
         table_detector.runner()
+        self.images_list = table_detector.images_list
 
     def rowDetection(self, claim_no):
         row_detector = RowDetection(self.output_folder_path, self.images_list)
