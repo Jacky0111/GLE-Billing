@@ -23,7 +23,7 @@ class RowDetection:
     def runner(self, claim_no):
         table_boxes_path = f'{self.output_folder_path}/labels/table_boxes.txt'
         selected_pages = RowDetection.readSelectedPages(table_boxes_path)
-        new_img_list = RowDetection.readSelectedPages(selected_pages)
+        new_img_list = [img_name + '_crop' for img_name in self.images_list if int(img_name.split('_')[-1]) in selected_pages]
         self.createRowFolder()
         self.parseAndDetect(selected_pages, new_img_list)
 
@@ -47,14 +47,6 @@ class RowDetection:
     def createRowFolder(self):
         os.makedirs(os.path.join(self.output_folder_path, 'Row'), exist_ok=True)
         return f'{self.output_folder_path}/Row'
-
-    '''
-    Create a list of modified image names based on selected pages.
-    @param selected_pages: A list of selected page numbers.
-    @return: A list of new image names.
-    '''
-    def createNewImageList(self, selected_pages):
-        return [img_name + '_crop' for img_name in self.images_list if int(img_name.split('_')[-1]) in selected_pages]
 
     '''
     Parse options and detect rows using the 'row.pt' file.
@@ -88,13 +80,13 @@ class RowDetection:
         RowDetection.saveMergedRows(row_boxes_path, page, merged_values)
         self.drawAndSaveRows(tb_img, crop_img, page, merged_values, img)
 
+    '''
+    Merge rows if y-coordinate difference is less than or equal to the threshold.
+    @param values: A list of row box values.
+    @return: A list of merged row values.
+    '''
     @staticmethod
     def mergeRows(values):
-        """
-        Merge rows if y-coordinate difference is less than or equal to the threshold.
-        @param values: A list of row box values.
-        @return: A list of merged row values.
-        """
         threshold = 0.003
         merged_values = []
         merged_row = values[0]
