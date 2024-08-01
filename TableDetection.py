@@ -18,6 +18,7 @@ class TableDetection:
         self.moveUpDirectories()
         self.detectTables()
 
+
     '''
     Change the current working directory to the output folder path.
     '''
