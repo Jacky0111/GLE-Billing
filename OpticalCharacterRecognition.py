@@ -46,42 +46,117 @@ class OCR:
             img = cv2.imread(img_path)
             temp_df = OCR.imageToData(img)
             temp_df = temp_df.sort_values(by='left', ascending=True)
+            temp_df.reset_index(drop=True, inplace=True)
 
             print(temp_df)
 
+            # 10 columns
             if idx == 0:
-                t1 = temp_df[4:]
+                double_counter = 0
+                triple_counter = 0
+                t1 = temp_df[:10].copy()
 
-                print(t1)
-                print('t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1')
                 self.drawBoundingBox(img, temp_df)
                 cv2.imwrite(f'{self.images_path}/bbox_{file}', img)
 
-                cols_name, temp_df = self.checkHospital(t3.iloc[:, :-1])
+                for index, row in t1.iterrows():
+                    # First col
+                    if index == 0:
+                        t1.loc[index, 'left'] = index
+                        t1.loc[index, 'width'] = temp_df.loc[index, 'width'] / 2 + temp_df.loc[index, 'left']
 
-                continue
-            # elif idx == 1:
-            #     t2 = self.adjustSecondImage(temp_df)
-            #
-            #     print(t2)
-            #     print('t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2')
-            #
-            #     t3 = pd.concat([t2, t1]).reset_index(drop=True)
-            #
-            #     print(t3)
-            #     print('t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3')
-            #
-            #     cols_name, temp_df = self.checkHospital(t3.iloc[:, :-1])
-            # else:
-            #     temp_df = self.filterTempDataFrame(temp_df, cols_name)
-            #     self.df = pd.concat([self.df, temp_df], ignore_index=True)
-            #     self.drawBoundingBox(img, temp_df)
-            #     cv2.imwrite(f'{self.images_path}/bbox_{file}', img)
-            #
-            #     bill_list = self.bill.assignCoordinate(temp_df)
-            #     tr = TabularRule(bill_list, True if idx == 1 else False)
-            #     tr.runner()
-            #     self.table_data_list.append(tr.row_list)
+                    # Second col
+                    elif index == 1:
+                        t1.loc[index, 'left'] = temp_df.loc[index-1, 'width'] / 2
+                        t1.loc[index, 'top'] = t1.loc[index-1, 'top']
+                        t1.loc[index, 'width'] = temp_df.loc[index, 'left'] - t1.loc[index, 'left']
+                        t1.loc[index, 'height'] = t1.loc[index-1, 'height']
+
+                    # Third col
+                    elif index == 2:
+                        t1.loc[index] = temp_df.loc[index-1]
+
+                    # Forth col and after
+                    elif index in [3, 4, 5, 8, 9]:
+                        temp_row = index + double_counter
+
+                        if index == 8 or index == 9:
+                            temp_row += 4
+
+                        x0 = temp_df.loc[temp_row-1, 'left']
+                        x1 = temp_df.loc[temp_row, 'left']
+
+                        y0 = temp_df.loc[temp_row-1, 'top']
+                        y1 = temp_df.loc[temp_row, 'top']
+
+                        w0 = temp_df.loc[temp_row-1, 'width']
+                        w1 = temp_df.loc[temp_row, 'width']
+
+                        t1.loc[index, 'left'] = x0 if x0 < x1 else x1
+                        t1.loc[index, 'top'] = y0 if y0 < y1 else y1
+                        t1.loc[index, 'width'] = w0 if w0 > w1 else w1
+                        if t1.loc[index, 'top'] == y0:
+                            t1.loc[index, 'height'] = temp_df.loc[temp_row, 'height'] + y1
+                        elif t1.loc[index, 'top'] == y1:
+                            t1.loc[index, 'height'] = temp_df.loc[temp_row-1, 'height'] + y0
+
+                        double_counter += 1
+
+                    elif index in [6, 7]:
+                        temp_row = index + 2 + 2 * triple_counter
+
+                        x0 = temp_df.loc[temp_row, 'left']
+                        x1 = temp_df.loc[temp_row+1, 'left']
+                        x2 = temp_df.loc[temp_row+2, 'left']
+
+                        y0 = temp_df.loc[temp_row, 'top']
+                        y1 = temp_df.loc[temp_row+1, 'top']
+                        y2 = temp_df.loc[temp_row+2, 'top']
+
+                        w0 = temp_df.loc[temp_row, 'width']
+                        w1 = temp_df.loc[temp_row+1, 'width']
+                        w2 = temp_df.loc[temp_row+2, 'width']
+
+                        t1.loc[index, 'left'] = min(x0, x1, x2)
+                        t1.loc[index, 'top'] = min(y0, y1, y2)
+                        t1.loc[index, 'width'] = max(w0, w1, w2)
+                        max_y = max(y0, y1, y2)
+                        temp_df_range = temp_df.loc[temp_row:temp_row+3]
+                        matching_height = temp_df_range[temp_df_range['top'] == max_y]['height'].values[0]
+                        t1.loc[index, 'height'] = max_y + matching_height
+
+                        triple_counter += 1
+
+                print(t1)
+                print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+                # self.drawBoundingBox(img, temp_df)
+                # cv2.imwrite(f'{self.images_path}/bbox_{file}', img)
+                #
+                # cols_name, temp_df = self.checkHospital(t1.iloc[:, :-1])
+                #
+                # continue
+            elif idx == 1:
+                t2 = self.adjustSecondImage(temp_df)
+
+                print(t2)
+                print('t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2')
+
+                t3 = pd.concat([t2, t1]).reset_index(drop=True)
+
+                print(t3)
+                print('t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3')
+
+                cols_name, temp_df = self.checkHospital(t3.iloc[:, :-1])
+            else:
+                temp_df = self.filterTempDataFrame(temp_df, cols_name)
+                self.df = pd.concat([self.df, temp_df], ignore_index=True)
+                self.drawBoundingBox(img, temp_df)
+                cv2.imwrite(f'{self.images_path}/bbox_{file}', img)
+
+                bill_list = self.bill.assignCoordinate(temp_df)
+                tr = TabularRule(bill_list, True if idx == 1 else False)
+                tr.runner()
+                self.table_data_list.append(tr.row_list)
 
             tb_list = [[element.text for element in row] for row in self.table_data_list]
             self.postProcessData(tb_list)
@@ -145,14 +220,29 @@ class OCR:
     @return t2: Adjusted DataFrame with modified alignment.
     '''
     @staticmethod
+    def adjustFirstImage(temp_df):
+        df = temp_df.iloc[:3]
+        df = pd.concat([df.iloc[:1], df]).reset_index(drop=True)
+        df.loc[1, 'width'] /= 2
+        df.loc[0, 'width'] = df.loc[1, 'width']
+        df.loc[0, 'left'] = 0
+        df.loc[1, 'left'] = df.loc[1, 'width'] + 41
+        return df
+
+    '''
+    Adjust the alignment of the second image's data.
+    @param temp_df: DataFrame containing the OCR results from the second image.
+    @return t2: Adjusted DataFrame with modified alignment.
+    '''
+    @staticmethod
     def adjustSecondImage(temp_df):
-        t2 = temp_df.iloc[:3]
-        t2 = pd.concat([t2.iloc[:1], t2]).reset_index(drop=True)
-        t2.loc[1, 'width'] /= 2
-        t2.loc[0, 'width'] = t2.loc[1, 'width']
-        t2.loc[0, 'left'] = 0
-        t2.loc[1, 'left'] = t2.loc[1, 'width'] + 41
-        return t2
+        df = temp_df.iloc[:3]
+        df = pd.concat([df.iloc[:1], df]).reset_index(drop=True)
+        df.loc[1, 'width'] /= 2
+        df.loc[0, 'width'] = df.loc[1, 'width']
+        df.loc[0, 'left'] = 0
+        df.loc[1, 'left'] = df.loc[1, 'width'] + 41
+        return df
 
     '''
     Filter the temporary DataFrame based on similarity to header names.
