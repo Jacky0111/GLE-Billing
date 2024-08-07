@@ -2,6 +2,9 @@ import os
 import cv2
 import pytesseract
 
+from langdetect import detect, DetectorFactory
+from langdetect.lang_detect_exception import LangDetectException
+
 from Detect import Detect
 from OpticalCharacterRecognition import OCR
 
@@ -159,5 +162,27 @@ class RowDetection:
         check_img = cv2.imread(cropped_path)
         gray = cv2.cvtColor(check_img, cv2.COLOR_BGR2GRAY)
         text = pytesseract.image_to_string(gray).strip()
-        if not text:
+        desc_keywords = ["billing", "group"]
+        is_exception_line = any(word in text.lower() for word in desc_keywords)
+
+        if not text or is_exception_line:
             os.remove(cropped_path)
+
+    '''
+    Detects if the given text is in English.
+    @param text: The text to detect the language for.
+    @return: True if the text is in English, False otherwise.
+    '''
+    @staticmethod
+    def isEnglish(text):
+        try:
+            language = detect(text)
+            return language == 'en'
+        except LangDetectException:
+            return False
+
+
+
+
+
+
