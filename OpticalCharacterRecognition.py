@@ -35,9 +35,6 @@ class OCR:
     - Applies tabular rules and saves the results.
     '''
     def runner(self):
-        t1 = 0
-        t2 = 0
-        t3 = 0
         cols_name = None
         img_file_list = self.getSortedImageFiles()
 
@@ -55,9 +52,6 @@ class OCR:
                 double_counter = 0
                 triple_counter = 0
                 t1 = temp_df[:10].copy()
-
-                self.drawBoundingBox(img, temp_df)
-                cv2.imwrite(f'{self.images_path}/bbox_{file}', img)
 
                 for index, row in t1.iterrows():
                     # First col
@@ -129,36 +123,30 @@ class OCR:
 
                 print(t1)
                 print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-                # self.drawBoundingBox(img, temp_df)
-                # cv2.imwrite(f'{self.images_path}/bbox_{file}', img)
-                #
-                # cols_name, temp_df = self.checkHospital(t1.iloc[:, :-1])
-                #
-                # continue
-            elif idx == 1:
-                t2 = self.adjustSecondImage(temp_df)
 
-                print(t2)
-                print('t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2t2')
-
-                t3 = pd.concat([t2, t1]).reset_index(drop=True)
-
-                print(t3)
-                print('t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3t3')
-
-                cols_name, temp_df = self.checkHospital(t3.iloc[:, :-1])
-            else:
-                temp_df = self.filterTempDataFrame(temp_df, cols_name)
-                self.df = pd.concat([self.df, temp_df], ignore_index=True)
                 self.drawBoundingBox(img, temp_df)
                 cv2.imwrite(f'{self.images_path}/bbox_{file}', img)
 
-                bill_list = self.bill.assignCoordinate(temp_df)
-                tr = TabularRule(bill_list, True if idx == 1 else False)
-                tr.runner()
-                self.table_data_list.append(tr.row_list)
+                cols_name, temp_df = self.checkHospital(t1.iloc[:, :-1])
+
+                continue
+            else:
+                temp_df = self.filterTempDataFrame(temp_df, cols_name)
+                self.df = pd.concat([self.df, temp_df], ignore_index=True)
+
+            self.drawBoundingBox(img, temp_df)
+            cv2.imwrite(f'{self.images_path}/bbox_{file}', img)
+
+            bill_list = self.bill.assignCoordinate(temp_df)
+            tr = TabularRule(bill_list, True if idx == 0 else False)
+            tr.runner()
+            self.table_data_list.append(tr.row_list)
 
             tb_list = [[element.text for element in row] for row in self.table_data_list]
+
+            print()
+            print(f'tb_list: \t{tb_list}')
+
             self.postProcessData(tb_list)
 
     '''
@@ -316,9 +304,10 @@ class OCR:
             self.adjustCols(tb_list, e)
         itemized_data.insert(0, 'ClaimNo', self.claim_no * len(itemized_data))
 
-        df_temp = pd.read_excel(r'claim_data.xlsx')
+        # df_temp = pd.read_excel(r'claim_data.xlsx')
         # Get the PolicyNo from the matching row
-        policy_number = df_temp.loc[df_temp['ClaimNo'] == self.claim_no[0], 'PolicyNo'].iloc[0]
+        # policy_number = df_temp.loc[df_temp['ClaimNo'] == self.claim_no[0], 'PolicyNo'].iloc[0]
+        policy_number = '1234567'
 
         self.saveToExcel(self.df, 'image_to_data')
 
