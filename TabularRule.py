@@ -69,7 +69,6 @@ class TabularRule:
 
             elif TabularRule.rule4(distance):
                 print('Comply Rule 4')
-                # print(distance)
                 content += ' ' + text
                 temp_x1 = x2 if not rule4 else temp_x1
                 rule4 = True
