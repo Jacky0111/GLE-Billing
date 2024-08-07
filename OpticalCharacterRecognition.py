@@ -131,13 +131,21 @@ class OCR:
 
                 continue
             else:
+                print(temp_df)
+                print('temp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_df')
+
                 temp_df = self.filterTempDataFrame(temp_df, cols_name)
+
+                # Concatenate the data to the final DataFrame
                 self.df = pd.concat([self.df, temp_df], ignore_index=True)
+
 
             self.drawBoundingBox(img, temp_df)
             cv2.imwrite(f'{self.images_path}/bbox_{file}', img)
 
             bill_list = self.bill.assignCoordinate(temp_df)
+            for bill in bill_list:
+                print(f'{idx}. bill_list: {bill}')
             tr = TabularRule(bill_list, True if idx == 0 else False)
             tr.runner()
             self.table_data_list.append(tr.row_list)
