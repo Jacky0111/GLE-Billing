@@ -43,7 +43,7 @@ class TabularRule:
             previous_row = self.data[index - 1]
             x2 = previous_row.x
             w2 = previous_row.width
-            distance = x1 - (x2 + w2)
+            distance = abs(x1 - (x2 + w2))
 
             if TabularRule.rule1(self.data):
                 print('Comply Rule 1')
@@ -53,13 +53,22 @@ class TabularRule:
                 grouped_bill = Bill(x=temp_x1, width=temp_x2-temp_x1, text=text, identity=self.identity)
                 self.row_list = [grouped_bill]
 
-            elif TabularRule.rule2(index):
+            elif TabularRule.rule2(index, x2+w2, x1):
                 print('Comply Rule 2')
+
+                grouped_bill = Bill(x=0, width=0, text='', identity=self.identity)
+                self.row_list.append(grouped_bill)
+
                 content = text
                 temp_x1 = x1
 
-            elif TabularRule.rule3(distance, index, self.data):
+            elif TabularRule.rule3(index):
                 print('Comply Rule 3')
+                content = text
+                temp_x1 = x1
+
+            elif TabularRule.rule4(distance, index, self.data):
+                print('Comply Rule 4')
                 temp_x1 = temp_x1 if temp_x1 else x2
                 temp_x2 = x1 + w1
 
@@ -67,14 +76,14 @@ class TabularRule:
 
                 self.row_list.append(grouped_bill)
 
-            elif TabularRule.rule4(distance):
-                print('Comply Rule 4')
+            elif TabularRule.rule5(distance):
+                print('Comply Rule 5')
                 content += ' ' + text
                 temp_x1 = x2 if not rule4 else temp_x1
                 rule4 = True
 
-            elif TabularRule.rule5(distance, index, self.data):
-                print('Comply Rule 5')
+            elif TabularRule.rule6(distance, index, self.data):
+                print('Comply Rule 6')
                 temp_x1 = x2
                 temp_x2 = x2 + w2
 
@@ -90,8 +99,8 @@ class TabularRule:
 
                 self.row_list.append(grouped_bill)
 
-            elif TabularRule.rule6(distance):
-                print('Comply Rule 6')
+            elif TabularRule.rule7(distance):
+                print('Comply Rule 7')
                 rule4 = False
                 rule6 = True
                 temp_x1 = x2 if not temp_x1 else temp_x1
@@ -116,6 +125,8 @@ class TabularRule:
             return
 
         for index, ele in enumerate(self.row_list):
+            print(index, ele)
+
             x1 = ele.x
             w1 = ele.width
             x2 = self.row_list[index + 1].x if not index == len(self.row_list) - 1 else 0
@@ -158,51 +169,56 @@ class TabularRule:
     def rule1(data):
         return len(data) == 1
 
+    @staticmethod
+    def rule2(counter, x0w0, x1):
+        return counter == 0 and x0w0 < x1
+
     '''
     Rule 2: Check if the row is the first element.
     @param counter: An integer representing the row index.
     @return True if rule is applied, False otherwise.
     '''
     @staticmethod
-    def rule2(counter):
+    def rule3(counter):
         return counter == 0
 
     '''
-    Rule 3: Check if the distance is lower than 40 and the row is last element. 
+    Rule 4: Check if the distance is lower than 40 and the row is last element. 
     @param dist: A integer representing the distance.
     @param counter: An integer representing the row index.
     @param data: A list of data rows.
     @return True if rule is applied, False otherwise.
     '''
     @staticmethod
-    def rule3(dist, counter, data):
-        return dist <= 40 and counter == len(data) - 1
+    def rule4(dist, counter, data):
+        return dist < 20 and counter == len(data) - 1
 
     '''
-    Rule 4: Check if the distance is lower than 40.
+    Rule 6: Check if the distance is lower than 40.
     @param dist: A integer representing the distance.
     @return True if rule is applied, False otherwise.
     '''
     @staticmethod
-    def rule4(dist):
-        return dist <= 40
+    def rule5(dist):
+        return dist < 20
 
     '''
-    Rule 5: Check if the distance is higher or equal to 40 and the row is last element.
+    Rule 6: Check if the distance is higher or equal to 40 and the row is last element.
     @param dist: A integer representing the distance.
     @param counter: An integer representing the row index.
     @param data: A list of data rows.
     @return True if rule is applied, False otherwise.
     '''
     @staticmethod
-    def rule5(dist, counter, data):
-        return dist > 40 and counter == len(data) - 1
+    def rule6(dist, counter, data):
+        return dist >= 20 and counter == len(data) - 1
 
     '''
-    Rule 6: Check if the distance is higher or equal to 40.
+    Rule 7: Check if the distance is higher or equal to 40.
     @param dist: A integer representing the distance.
     @return True if rule is applied, False otherwise.
     '''
     @staticmethod
-    def rule6(dist):
-        return dist > 40
+    def rule7(dist):
+        return dist >= 20
+
