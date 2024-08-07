@@ -57,13 +57,13 @@ class OCR:
                     # First col
                     if index == 0:
                         t1.loc[index, 'left'] = index
-                        t1.loc[index, 'width'] = temp_df.loc[index, 'width'] / 2 + temp_df.loc[index, 'left']
+                        t1.loc[index, 'width'] = temp_df.loc[index, 'width'] * 0.4 + temp_df.loc[index, 'left']
 
                     # Second col
                     elif index == 1:
-                        t1.loc[index, 'left'] = temp_df.loc[index-1, 'width'] / 2
+                        t1.loc[index, 'left'] = temp_df.loc[index-1, 'left'] + temp_df.loc[index-1, 'width'] - temp_df.loc[index-1, 'width'] * 0.55
                         t1.loc[index, 'top'] = t1.loc[index-1, 'top']
-                        t1.loc[index, 'width'] = temp_df.loc[index, 'left'] - t1.loc[index, 'left']
+                        t1.loc[index, 'width'] = temp_df.loc[index-1, 'width'] * 0.55
                         t1.loc[index, 'height'] = t1.loc[index-1, 'height']
 
                     # Third col
@@ -124,12 +124,7 @@ class OCR:
                 print(t1)
                 print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
 
-                self.drawBoundingBox(img, temp_df)
-                cv2.imwrite(f'{self.images_path}/bbox_{file}', img)
-
                 cols_name, temp_df = self.checkHospital(t1.iloc[:, :-1])
-
-                continue
             else:
                 print(temp_df)
                 print('temp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_df')
@@ -148,6 +143,8 @@ class OCR:
                 print(f'{idx}. bill_list: {bill}')
             tr = TabularRule(bill_list, True if idx == 0 else False)
             tr.runner()
+            print(f'tr.final_list: {tr.final_list}')
+
             self.table_data_list.append(tr.row_list)
 
             tb_list = [[element.text for element in row] for row in self.table_data_list]
@@ -310,6 +307,10 @@ class OCR:
             itemized_data = pd.DataFrame(tb_list[1:], columns=self.cols[0])
         except ValueError as e:
             self.adjustCols(tb_list, e)
+
+        # Print adjusted columns to check
+        print("Adjusted Columns:", tb_list[0])
+        itemized_data = pd.DataFrame(tb_list[1:], columns=tb_list[0])
         itemized_data.insert(0, 'ClaimNo', self.claim_no * len(itemized_data))
 
         # df_temp = pd.read_excel(r'claim_data.xlsx')
@@ -332,12 +333,23 @@ class OCR:
     def adjustCols(tb_list, e):
         numbers = list(map(int, re.findall(r'\d+', str(e))))
         if numbers[0] > numbers[1]:
+            print(f'numbers[0] > numbers[1]: {numbers[0] > numbers[1]}')
             num_columns_in_data = len(tb_list[0])
+            print(f'num_columns: {num_columns_in_data}')
             max_columns = len(tb_list[1])
+            print(f'max_columns_in_data: {max_columns}')
+            # If the number of columns in headers is less than the number of columns in any data row, add None or ''
+            print(f'Before: {tb_list[1]}')
             tb_list[1].extend([None] * (num_columns_in_data - max_columns))
+
         elif numbers[0] < numbers[1]:
+            print(f'numbers[0] < numbers[1]: {numbers[0] < numbers[1]}')
             num_columns = len(tb_list[0])
+            print(f'num_columns: {num_columns}')
             max_columns_in_data = max(len(row) for row in tb_list[1:])
+            print(f'max_columns_in_data: {max_columns_in_data}')
+            # If the number of columns in headers is less than the number of columns in any data row, add None or ''
+            print(f'Before: {tb_list[0]}')
             tb_list[0].extend([None] * (max_columns_in_data - num_columns))
 
     '''
