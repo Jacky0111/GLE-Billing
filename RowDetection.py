@@ -149,7 +149,9 @@ class RowDetection:
             cropped_row = crop_img[0 if y - h < 0 else y - h:y, 0:crop_img.shape[1]]
             cropped_path = f'{row_folder}/row_{page}_{str(idx).zfill(3)}.png'
             cv2.imwrite(cropped_path, cropped_row)
-            RowDetection.removeEmptyImages(cropped_path)
+
+            if idx > 0:
+                RowDetection.removeEmptyImages(cropped_path)
 
         cv2.imwrite(f'{self.output_folder_path}/{img[:-5]}_row_revised.png', tb_img)
 
@@ -162,7 +164,7 @@ class RowDetection:
         check_img = cv2.imread(cropped_path)
         gray = cv2.cvtColor(check_img, cv2.COLOR_BGR2GRAY)
         text = pytesseract.image_to_string(gray).strip()
-        desc_keywords = ["billing", "group"]
+        desc_keywords = ['billing', 'group', 'sub', 'mma', 'code', 'gross', 'tax']
         is_exception_line = any(word in text.lower() for word in desc_keywords)
 
         if not text or is_exception_line:
