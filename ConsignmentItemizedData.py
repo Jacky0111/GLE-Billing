@@ -2,7 +2,6 @@
 
 import os
 import cv2
-import glob
 import shutil
 import pytesseract
 import numpy as np
