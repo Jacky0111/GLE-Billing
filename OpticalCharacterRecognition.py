@@ -7,6 +7,7 @@ from paddleocr import PaddleOCR
 
 from Bill import Bill
 from TabularRule import TabularRule
+from TextPostProcessing import TPP
 
 
 class OCR:
@@ -46,6 +47,9 @@ class OCR:
             temp_df.reset_index(drop=True, inplace=True)
 
             print(temp_df)
+
+            self.drawBoundingBox(img, temp_df)
+            cv2.imwrite(f'{self.images_path}/bbox_{file}', img)
 
             # 10 columns
             if idx == 0:
@@ -121,19 +125,12 @@ class OCR:
 
                         triple_counter += 1
 
-                print(t1)
-                print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-
                 cols_name, temp_df = self.checkHospital(t1.iloc[:, :-1])
             else:
-                print(temp_df)
-                print('temp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_dftemp_df')
-
                 temp_df = self.filterTempDataFrame(temp_df, cols_name)
 
                 # Concatenate the data to the final DataFrame
                 self.df = pd.concat([self.df, temp_df], ignore_index=True)
-
 
             self.drawBoundingBox(img, temp_df)
             cv2.imwrite(f'{self.images_path}/bbox_{file}', img)
@@ -143,8 +140,6 @@ class OCR:
                 print(f'{idx}. bill_list: {bill}')
             tr = TabularRule(bill_list, True if idx == 0 else False)
             tr.runner()
-            print(f'tr.final_list: {tr.final_list}')
-
             self.table_data_list.append(tr.row_list)
 
             tb_list = [[element.text for element in row] for row in self.table_data_list]
@@ -152,7 +147,11 @@ class OCR:
             print()
             print(f'tb_list: \t{tb_list}')
 
-            self.postProcessData(tb_list)
+            tpp = TPP(self.claim_no, self.cols)
+            itemized_data = tpp.runner(tb_list)
+
+        self.saveToExcel(self.df, 'image_to_data')
+        self.saveToCSV(itemized_data, 'itemized_data')
 
     '''
     Get a sorted list of image files from the given directory.
@@ -288,20 +287,20 @@ class OCR:
     '''
     def postProcessData(self, tb_list):
         itemized_data = pd.DataFrame()
-        date_pattern = r'\b\d{2}/\d{2}/\d{4}\b'
+        # date_pattern = r'\b\d{2}/\d{2}/\d{4}\b'
 
         self.cols.append(tb_list[0])
 
-        for sublist in tb_list:
-            if len(sublist) > 1:
-                sentence = sublist[1]
-                dates = re.findall(date_pattern, sentence)
-                if dates:
-                    date = dates[0]
-                    sentence = re.sub(date_pattern, '', sentence)
-                    del sublist[1]
-                    sublist.insert(1, date)
-                    sublist.insert(1, sentence)
+        # for sublist in tb_list:
+        #     if len(sublist) > 1:
+        #         sentence = sublist[1]
+        #         dates = re.findall(date_pattern, sentence)
+        #         if dates:
+        #             date = dates[0]
+        #             sentence = re.sub(date_pattern, '', sentence)
+        #             del sublist[1]
+        #             sublist.insert(1, date)
+        #             sublist.insert(1, sentence)
 
         try:
             itemized_data = pd.DataFrame(tb_list[1:], columns=self.cols[0])
@@ -311,6 +310,8 @@ class OCR:
         # Print adjusted columns to check
         print("Adjusted Columns:", tb_list[0])
         itemized_data = pd.DataFrame(tb_list[1:], columns=tb_list[0])
+
+
         itemized_data.insert(0, 'ClaimNo', self.claim_no * len(itemized_data))
 
         # df_temp = pd.read_excel(r'claim_data.xlsx')
@@ -390,7 +391,9 @@ class OCR:
         text_col = pd.DataFrame(header_name, columns=['text'])
 
         data = pd.concat([data, text_col], axis=1)
-        print(data)
+
+        data = data.drop([3, 8])
+        header_name = [text for i, text in enumerate(header_name) if i not in [3, 8]]
 
         return header_name, data
 
