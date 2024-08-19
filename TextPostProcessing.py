@@ -43,6 +43,14 @@ class TPP:
         # Placeholder policy number (to be fetched from another source)
         policy_number = '1234567'
 
+        df_temp = pd.read_excel(r'claim_data.xlsx')
+        # Get the PolicyNo from the matching row
+        # Find the row where ClaimNo is equal to 'ALMCIP02180441'
+        matching_row = df_temp[df_temp['ClaimNo'] == self.claim_no]
+        # Get the PolicyNo from the matching row
+        policy_number = matching_row['PolicyNo'].iloc[0] if not matching_row.empty else None
+        print(f'Type: {type(policy_number)}')
+
         # Insert PolicyNo column at the beginning
         data.insert(0, 'PolicyNo', policy_number)
 
@@ -117,6 +125,11 @@ class TPP:
 
                 col_index += 1
             new_data.append(new_row)
+
+        # Ensure that each row in new_data has the same number of columns as df.columns
+        for i in range(len(new_data)):
+            if len(new_data[i]) < len(df.columns):
+                new_data[i].extend([None] * (len(df.columns) - len(new_data[i])))
 
         try:
             # Create DataFrame using the provided column names
