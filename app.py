@@ -39,8 +39,6 @@ class App:
         self.uploaded_files = st.file_uploader("Upload PDF files", type="pdf", accept_multiple_files=True)
         self.files_name = [Path(f.name).stem for f in self.uploaded_files]
 
-        st.write(self.files_name)
-
     def processor(self):
         if hasattr(self, 'files_name') and self.files_name:
             for file, up_file in zip(self.files_name, self.uploaded_files):
