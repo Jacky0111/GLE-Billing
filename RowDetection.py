@@ -58,7 +58,7 @@ class RowDetection:
     '''
     def parseAndDetect(self, selected_pages, new_img_list):
         for page, img in zip(selected_pages, new_img_list):
-            Detect.parseOpt(self.output_folder_path, img, 'row.pt', 0.3)
+            Detect.parseOpt(self.output_folder_path, img, 'row.pt', 0.5)
             self.processDetectedRows(page, img)
 
     '''
@@ -161,14 +161,17 @@ class RowDetection:
     '''
     @staticmethod
     def removeEmptyImages(cropped_path):
-        check_img = cv2.imread(cropped_path)
-        gray = cv2.cvtColor(check_img, cv2.COLOR_BGR2GRAY)
-        text = pytesseract.image_to_string(gray).strip()
-        desc_keywords = ['billing', 'group', 'sub', 'mma', 'code', 'gross', 'tax']
-        is_exception_line = any(word in text.lower() for word in desc_keywords)
+        try:
+            check_img = cv2.imread(cropped_path)
+            gray = cv2.cvtColor(check_img, cv2.COLOR_BGR2GRAY)
+            text = pytesseract.image_to_string(gray).strip()
+            desc_keywords = ['billing', 'group', 'sub', 'mma', 'code', 'gross', 'tax']
+            is_exception_line = any(word in text.lower() for word in desc_keywords)
 
-        if not text or is_exception_line:
-            os.remove(cropped_path)
+            if not text or is_exception_line:
+                os.remove(cropped_path)
+        except FileNotFoundError:
+            pass
 
     '''
     Detects if the given text is in English.
