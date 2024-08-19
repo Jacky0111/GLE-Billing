@@ -71,11 +71,11 @@ class OCR:
                         t1.loc[index, 'height'] = t1.loc[index-1, 'height']
 
                     # Third col
-                    elif index == 2:
-                        t1.loc[index] = temp_df.loc[index-1]
+                    if index == 2:
+                        t1.loc[index] = temp_df.loc[index]
 
                     # Forth col and after
-                    elif index in [3, 4, 5, 8, 9]:
+                    elif index in [2, 3, 4, 5, 8, 9]:
                         temp_row = index + double_counter
 
                         if index == 8 or index == 9:
@@ -100,7 +100,7 @@ class OCR:
 
                         double_counter += 1
 
-                    elif index in [6, 7]:
+                    elif index == [6, 7]:
                         temp_row = index + 2 + 2 * triple_counter
 
                         x0 = temp_df.loc[temp_row, 'left']
@@ -127,7 +127,10 @@ class OCR:
 
                 cols_name, temp_df = self.checkHospital(t1.iloc[:, :-1])
             else:
-                temp_df = self.filterTempDataFrame(temp_df, cols_name)
+                try:
+                    temp_df = self.filterTempDataFrame(temp_df, cols_name)
+                except ValueError:
+                    pass
 
                 # Concatenate the data to the final DataFrame
                 self.df = pd.concat([self.df, temp_df], ignore_index=True)
